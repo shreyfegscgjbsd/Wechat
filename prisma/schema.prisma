@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserProfile {
+  id            String            @id @default(uuid())
+  clerkUserId   String            @unique
+  username      String            @unique
+  displayName   String
+  avatarUrl     String?
+  bio           String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  lastSeenAt    DateTime?
+
+  conversations ConversationMember[]
+  messages      Message[]
+  reactions     MessageReaction[]
+  sentCalls     CallSession[]     @relation("initiator")
+  mediaAssets   MediaAsset[]
+
+  @@index([clerkUserId])
+  @@index([lastSeenAt])
+}
+
+model Conversation {
+  id            String              @id @default(uuid())
+  type          ConversationType
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  lastMessageId String?
+
+  members       ConversationMember[]
+  messages      Message[]
+  calls         CallSession[]
+  lastMessage   Message?            @relation("lastMessage", fields: [lastMessageId], references: [id])
+
+  @@index([type])
+  @@index([updatedAt])
+}
+
+model ConversationMember {
+  id              String          @id @default(uuid())
+  conversationId  String
+  userId          String
+  role            MemberRole      @default(MEMBER)
+  joinedAt        DateTime        @default(now())
+  lastReadMessageId String?
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user            UserProfile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([conversationId, lastReadMessageId])
+}
+
+model Message {
+  id               String           @id @default(uuid())
+  conversationId   String
+  senderId         String
+  type             MessageType
+  body             String?
+  replyToMessageId String?
+  editedAt         DateTime?
+  deletedAt        DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  conversation  Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender        UserProfile       @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo       Message?          @relation("replyTo", fields: [replyToMessageId], references: [id])
+  replies       Message[]         @relation("replyTo")
+  reactions     MessageReaction[]
+  voice         VoiceMessage?
+  lastMessageFor Conversation[]    @relation("lastMessage")
+
+  @@index([conversationId, createdAt])
+  @@index([conversationId, senderId])
+  @@index([senderId])
+  @@index([replyToMessageId])
+  @@index([deletedAt])
+}
+
+model MediaAsset {
+  id         String       @id @default(uuid())
+  ownerId    String
+  storageKey String       @unique
+  mimeType   String
+  sizeBytes  Int
+  durationMs Int?
+  status     AssetStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+
+  owner UserProfile @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  voice  VoiceMessage[]
+
+  @@index([ownerId])
+  @@index([status])
+}
+
+model VoiceMessage {
+  messageId    String    @id
+  mediaAssetId String    @unique
+  waveformJson  Json?
+
+  message    Message    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  mediaAsset MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+}
+
+model MessageReaction {
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+}
+
+model CallSession {
+  id              String       @id @default(uuid())
+  conversationId  String
+  initiatedById   String
+  type            CallType
+  status          CallStatus
+  startedAt       DateTime?
+  endedAt         DateTime?
+  createdAt       DateTime     @default(now())
+
+  conversation Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  initiator    UserProfile   @relation("initiator", fields: [initiatedById], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([initiatedById])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum MemberRole {
+  MEMBER
+  ADMIN
+}
+
+enum MessageType {
+  TEXT
+  VOICE
+  SYSTEM
+  CALL_EVENT
+}
+
+enum AssetStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum CallType {
+  AUDIO
+  VIDEO
+}
+
+enum CallStatus {
+  RINGING
+  CONNECTING
+  ACTIVE
+  ENDED
+  FAILED
+  MISSED
+}
