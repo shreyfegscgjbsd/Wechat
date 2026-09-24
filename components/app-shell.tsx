@@ -3,7 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SignedOut } from "@clerk/nextjs";
+import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
+import { useEffect } from "react";
 import { CustomUserMenu } from "./custom-user-menu";
 import { UserSearch } from "./user-search";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ import { Avatar } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Search, MessageSquare, Settings, LogOut, Users, Phone, Video } from "lucide-react";
+import { realtimeClient, REALTIME_EVENTS } from "@/lib/realtime";
 import type { UserProfile as UserProfileType } from "@/lib/types";
 
 interface AppShellProps {
@@ -20,6 +22,19 @@ interface AppShellProps {
 
 export function AppShell({ children, user }: AppShellProps) {
   const pathname = usePathname();
+  const { isSignedIn } = useUser();
+
+  // Connect to WebSocket when signed in
+  useEffect(() => {
+    if (!isSignedIn || !user?.id || typeof window === "undefined") return;
+
+    const url = process.env.NEXT_PUBLIC_REALTIME_URL || "ws://localhost:3001";
+    realtimeClient.connect(url, user.id);
+
+    return () => {
+      realtimeClient.disconnect();
+    };
+  }, [isSignedIn, user?.id]);
 
   const navItems = [
     { href: "/dashboard", label: "Chats", icon: MessageSquare },

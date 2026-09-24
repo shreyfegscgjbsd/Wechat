@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { getAuthUser } from "@/lib/server-auth";
 import { ConversationList } from "@/components/conversation-list";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/server-auth";
 import type { Conversation } from "@/lib/types";
 
 function serializeDates<T>(obj: T): T {

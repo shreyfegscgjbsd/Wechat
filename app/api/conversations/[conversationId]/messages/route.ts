@@ -35,17 +35,38 @@ export async function GET(
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       include: {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
-        reactions: { include: { user: { select: { id: true, displayName: true } } } },
+        reactions: {
+          include: { user: { select: { id: true, displayName: true } } },
+        },
         replyTo: { include: { sender: { select: { id: true, displayName: true } } } },
       },
     });
+
+    // Aggregate reaction counts per emoji
+    const reactionCounts = await prisma.messageReaction.groupBy({
+      by: ["messageId", "emoji"],
+      _count: { _all: true },
+      where: { messageId: { in: messages.map((m) => m.id) } },
+    });
+    const countMap = new Map<string, number>();
+    for (const r of reactionCounts) {
+      countMap.set(`${r.messageId}:${r.emoji}`, r._count._all);
+    }
 
     const hasMore = messages.length > limit;
     const page = hasMore ? messages.slice(0, -1) : messages;
     const nextCursor = hasMore ? page[page.length - 1].id : null;
 
     return NextResponse.json({
-      messages: page.reverse(),
+      messages: page.map((m) => ({
+        ...m,
+        reactions: m.reactions.map((r) => ({
+          ...r,
+          count: countMap.get(`${m.id}:${r.emoji}`) ?? 1,
+        })),
+        createdAt: m.createdAt.toISOString(),
+        updatedAt: m.updatedAt.toISOString(),
+      })),
       nextCursor,
       hasMore,
     });
@@ -74,7 +95,21 @@ export async function POST(
     await requireConversationAccess(conversationId, user.id);
 
     const body = await request.json();
-    const { body: messageBody, replyToMessageId } = sendMessageSchema.parse(body);
+    const { body: messageBody, replyToMessageId, type, mediaId } = sendMessageSchema.parse(body);
+
+    // Validate: TEXT messages must have a body, VOICE messages must have a mediaId
+    if (type === "TEXT" && (!messageBody || messageBody.trim().length === 0)) {
+      return NextResponse.json(
+        { error: "Message body is required for text messages" },
+        { status: 400 }
+      );
+    }
+    if (type === "VOICE" && !mediaId) {
+      return NextResponse.json(
+        { error: "mediaId is required for voice messages" },
+        { status: 400 }
+      );
+    }
 
     if (replyToMessageId) {
       const replyTo = await prisma.message.findUnique({
@@ -93,14 +128,18 @@ export async function POST(
       data: {
         conversationId,
         senderId: user.id,
-        type: "TEXT",
-        body: messageBody,
+        type,
+        body: type === "TEXT" ? (messageBody ?? null) : null,
         replyToMessageId: replyToMessageId ?? null,
+        ...(type === "VOICE" && mediaId
+          ? { voice: { create: { mediaAssetId: mediaId } } }
+          : {}),
       },
       include: {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
         reactions: true,
         replyTo: { include: { sender: { select: { id: true, displayName: true } } } },
+        voice: { include: { mediaAsset: true } },
       },
     });
 

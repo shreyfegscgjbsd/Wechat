@@ -1,6 +1,5 @@
 import { WebSocketServer, type WebSocket } from "ws";
 import { prisma } from "./prisma";
-import { getAuthenticatedUser } from "./auth";
 
 interface RealtimeClient {
   ws: WebSocket;
@@ -8,7 +7,7 @@ interface RealtimeClient {
   conversations: Set<string>;
 }
 
-const clients = new Map<string, RealtimeClient>();
+const clients = new Map<WebSocket, RealtimeClient>();
 
 export function startRealtimeServer(port: number = 3001) {
   const wss = new WebSocketServer({ port });
@@ -32,7 +31,7 @@ export function startRealtimeServer(port: number = 3001) {
     }
 
     const client: RealtimeClient = { ws, userId, conversations: new Set() };
-    clients.set(ws as unknown as string, client);
+    clients.set(ws, client);
 
     ws.on("message", (data: Buffer | string) => {
       try {
@@ -44,11 +43,11 @@ export function startRealtimeServer(port: number = 3001) {
     });
 
     ws.on("close", () => {
-      clients.delete(ws as unknown as string);
+      clients.delete(ws);
     });
 
     ws.on("error", () => {
-      clients.delete(ws as unknown as string);
+      clients.delete(ws);
     });
   });
 

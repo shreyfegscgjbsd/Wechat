@@ -62,6 +62,7 @@ export interface MessageReaction {
   messageId: string;
   userId: string;
   emoji: string;
+  count?: number;
   createdAt: DateTime;
   user: UserProfile;
 }

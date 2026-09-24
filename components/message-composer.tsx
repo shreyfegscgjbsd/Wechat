@@ -15,7 +15,12 @@ import {
   Reply,
   Loader2,
 } from "lucide-react";
-import type { Message, UserProfile } from "@/lib/types";
+import type {
+    Message,
+    UserProfile,
+    UploadUrlResponse,
+    CompleteUploadRequest,
+  } from "@/lib/types";
 
 interface MessageComposerProps {
   conversationId: string;
@@ -39,6 +44,7 @@ export function MessageComposer({
   } | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const pendingVoiceBlobRef = useRef<Blob | null>(null);
 
   const handleSend = useCallback(async () => {
     const trimmed = text.trim();
@@ -111,6 +117,7 @@ export function MessageComposer({
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         stream.getTracks().forEach((t) => t.stop());
+        pendingVoiceBlobRef.current = blob;
       };
 
       mediaRecorderRef.current = recorder;
@@ -130,11 +137,75 @@ export function MessageComposer({
     }
   };
 
-  const handleStopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setRecordingDuration(0);
+  const handleStopRecording = async () => {
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    }
+    setIsRecording(false);
+    setRecordingDuration(0);
+
+    // Wait a tick for onstop to populate pendingVoiceBlobRef
+    await new Promise((r) => setTimeout(r, 50));
+    const blob = pendingVoiceBlobRef.current;
+    pendingVoiceBlobRef.current = null;
+    if (!blob) return;
+
+    try {
+      setSending(true);
+      // Get upload URL
+      const uploadRes = await fetch("/api/media/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: `voice-${Date.now()}.webm`,
+          contentType: "audio/webm",
+          size: blob.size,
+        }),
+      });
+      if (!uploadRes.ok) throw new Error("Failed to get upload URL");
+      const { uploadUrl, mediaId, storageKey, headers } =
+        (await uploadRes.json()) as UploadUrlResponse;
+
+      // Upload to S3
+      await fetch(uploadUrl, {
+        method: "PUT",
+        body: blob,
+        headers: headers ?? { "Content-Type": "audio/webm" },
+      });
+
+      // Complete upload (extract duration + waveform)
+      const completeRes = await fetch("/api/media/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mediaId, durationMs: blob.size > 0 ? Math.round(blob.size / 16000) * 1000 : 0 } as CompleteUploadRequest),
+      });
+      if (!completeRes.ok) throw new Error("Failed to complete upload");
+
+      // Send voice message
+      const msgRes = await fetch(
+        `/api/conversations/${conversationId}/messages`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversationId,
+            body: null,
+            type: "VOICE",
+            mediaId,
+          }),
+        }
+      );
+      if (!msgRes.ok) {
+        const err = await msgRes.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error || "Failed to send voice message");
+      }
+      const newMsg = await msgRes.json();
+      onMessageSent?.(newMsg);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send voice message");
+    } finally {
+      setSending(false);
     }
   };
 

@@ -2,8 +2,10 @@ import { z } from "zod";
 
 export const sendMessageSchema = z.object({
   conversationId: z.string().uuid("Invalid conversation ID"),
-  body: z.string().trim().min(1, "Message cannot be empty").max(5000, "Message too long"),
+  body: z.string().trim().max(5000, "Message too long").nullable().optional(),
+  type: z.enum(["TEXT", "VOICE", "SYSTEM", "CALL_EVENT"]).default("TEXT"),
   replyToMessageId: z.string().uuid().optional(),
+  mediaId: z.string().uuid().optional(),
 });
 
 export const editMessageSchema = z.object({

@@ -2,21 +2,17 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { motion } from "motion/react";
 import { Button } from "./ui/button";
 import { Avatar } from "./ui/avatar";
-import { Badge } from "./ui/badge";
 import { TooltipComponent } from "./ui/tooltip";
 import { VoiceMessagePlayer } from "./voice-message-player";
-import { formatTime } from "@/lib/utils";
+import { formatTime, cn } from "@/lib/utils";
 import {
   Edit2,
   Trash2,
   Reply,
   Smile,
-  Check,
   CheckCheck,
-  AlertCircle,
 } from "lucide-react";
 import type { Message, UserProfile } from "@/lib/types";
 
@@ -27,7 +23,7 @@ interface MessageBubbleProps {
   currentUser: UserProfile;
 }
 
-export function MessageBubble({
+export const MessageBubble = React.memo(function MessageBubble({
   message,
   isOutgoing,
   showSender,
@@ -145,7 +141,8 @@ export function MessageBubble({
                 >
                   <span>{r.emoji}</span>
                   <span className="text-[10px] text-muted-foreground">
-                    {1}
+                    {/* collapse reactions: show emoji + count per unique emoji */}
+                    {r.emoji} {r.count ?? 1}
                   </span>
                 </button>
               ))}
@@ -189,8 +186,5 @@ export function MessageBubble({
       </div>
     </div>
   );
-}
+});
 
-function cn(...inputs: (string | false | null | undefined)[]) {
-  return inputs.filter(Boolean).join(" ");
-}
