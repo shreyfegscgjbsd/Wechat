@@ -1,0 +1,26 @@
+[build]
+command = "npm run build"
+publish = ".next"
+functions = "netlify/functions"
+
+# All API routes are handled by Next.js built-in serverless functions
+# No manual redirect needed — Netlify serves .next automatically when output is standard Next.js
+
+[[redirects]]
+from = "/api/*"
+to = "/.next/serverless/:splat"
+status = 200
+force = true
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+[functions]
+node_bundler = "esbuild"
+directory = "netlify/functions"
+
+[build.environment]
+NODE_VERSION = "20"
+NEXT_RUNTIME = "nodejs"
