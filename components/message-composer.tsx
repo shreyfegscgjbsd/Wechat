@@ -242,7 +242,7 @@ export function MessageComposer({
         <div className="flex items-end gap-2">
           <TooltipComponent content="Attach" side="top">
             <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
-{/* eslint-disable-next-line jsx-a11y/alt-text */}
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image className="h-4 w-4" aria-hidden="true" />
             </Button>
           </TooltipComponent>
