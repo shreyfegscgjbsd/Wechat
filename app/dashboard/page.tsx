@@ -9,23 +9,34 @@ function serializeDates<T>(obj: T): T {
 }
 
 export default async function DashboardPage() {
-  const user = await getAuthUser();
-  if (!user) {
-    redirect('/');
+  let user;
+  try {
+    user = await getAuthUser();
+  } catch {
+    redirect('/sign-in');
   }
 
-  const conversations = await prisma.conversation.findMany({
-    where: {
-      members: { some: { userId: user.id } },
-    },
-    include: {
-      members: { include: { user: true } },
-      lastMessage: { include: { sender: true } },
-    },
-    orderBy: { updatedAt: 'desc' },
-  });
+  if (!user) {
+    redirect('/sign-in');
+  }
 
-  const serialized = serializeDates(conversations) as unknown as Conversation[];
+  let conversations: Conversation[] = [];
+  try {
+    const data = await prisma.conversation.findMany({
+      where: {
+        members: { some: { userId: user.id } },
+      },
+      include: {
+        members: { include: { user: true } },
+        lastMessage: { include: { sender: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+    conversations = serializeDates(data) as unknown as Conversation[];
+  } catch {
+    // Return empty conversations if DB query fails
+    conversations = [];
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -33,8 +44,10 @@ export default async function DashboardPage() {
         <h2 className="font-semibold text-lg">Conversations</h2>
       </div>
       <div className="flex-1 overflow-y-auto">
-        <ConversationList conversations={serialized} currentUserId={user.id} />
+        <ConversationList conversations={conversations} currentUserId={user.id} />
       </div>
     </div>
   );
 }
+
+export const dynamic = 'force-dynamic';

@@ -8,9 +8,15 @@ function serializeDates<T>(obj: T): T {
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const user = await getAuthUser();
+  let user;
+  try {
+    user = await getAuthUser();
+  } catch {
+    redirect('/sign-in');
+  }
+
   if (!user) {
-    redirect('/');
+    redirect('/sign-in');
   }
 
   const serializedUser = serializeDates(user) as UserProfile;
