@@ -5,5 +5,14 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[functions]
-  node_bundler = "esbuild"
+# Environment variables MUST be set in the Netlify UI:
+#   Site settings → Environment variables → Add new
+#
+# Required:
+#   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY  (Clerk Dashboard → API Keys → Publishable key)
+#   CLERK_SECRET_KEY                   (Clerk Dashboard → API Keys → Secret key)
+#   DATABASE_URL                       (PostgreSQL connection string)
+#
+# Optional (for voice messages & calls):
+#   STORAGE_ENDPOINT, STORAGE_BUCKET, STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY
+#   TURN_SERVER_URL, TURN_USERNAME, TURN_CREDENTIAL
