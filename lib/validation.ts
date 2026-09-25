@@ -1,40 +1,44 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const sendMessageSchema = z.object({
-  conversationId: z.string().uuid("Invalid conversation ID"),
-  body: z.string().trim().max(5000, "Message too long").nullable().optional(),
-  type: z.enum(["TEXT", "VOICE", "SYSTEM", "CALL_EVENT"]).default("TEXT"),
+  conversationId: z.string().uuid('Invalid conversation ID'),
+  body: z.string().trim().max(5000, 'Message too long').nullable().optional(),
+  type: z.enum(['TEXT', 'VOICE', 'SYSTEM', 'CALL_EVENT']).default('TEXT'),
   replyToMessageId: z.string().uuid().optional(),
   mediaId: z.string().uuid().optional(),
 });
 
 export const editMessageSchema = z.object({
-  body: z.string().trim().min(1, "Message cannot be empty").max(5000, "Message too long"),
+  body: z.string().trim().min(1, 'Message cannot be empty').max(5000, 'Message too long'),
 });
 
 export const createDirectConversationSchema = z.object({
-  username: z.string().trim().min(1, "Username is required").max(32, "Username too long"),
+  username: z.string().trim().min(1, 'Username is required').max(32, 'Username too long'),
 });
 
 export const markReadSchema = z.object({
-  lastReadMessageId: z.string().uuid("Invalid message ID"),
+  lastReadMessageId: z.string().uuid('Invalid message ID'),
 });
 
 export const startCallSchema = z.object({
-  conversationId: z.string().uuid("Invalid conversation ID"),
-  type: z.enum(["AUDIO", "VIDEO"]),
+  conversationId: z.string().uuid('Invalid conversation ID'),
+  type: z.enum(['AUDIO', 'VIDEO']),
 });
 
 export const completeUploadSchema = z.object({
-  mediaId: z.string().uuid("Invalid media ID"),
+  mediaId: z.string().uuid('Invalid media ID'),
   durationMs: z.number().int().positive().optional(),
   waveformJson: z.array(z.number()).optional(),
 });
 
 export const uploadUrlSchema = z.object({
-  conversationId: z.string().uuid("Invalid conversation ID"),
+  conversationId: z.string().uuid('Invalid conversation ID'),
   mimeType: z.string().max(255),
-  sizeBytes: z.number().int().positive().max(25 * 1024 * 1024, "Max file size is 25MB"),
+  sizeBytes: z
+    .number()
+    .int()
+    .positive()
+    .max(25 * 1024 * 1024, 'Max file size is 25MB'),
 });
 
 export const reactionSchema = z.object({
@@ -50,11 +54,11 @@ export type CompleteUploadInput = z.infer<typeof completeUploadSchema>;
 export type UploadUrlInput = z.infer<typeof uploadUrlSchema>;
 
 export const ALLOWED_AUDIO_MIME_TYPES = [
-  "audio/webm",
-  "audio/mp4",
-  "audio/ogg",
-  "audio/wav",
-  "audio/mpeg",
+  'audio/webm',
+  'audio/mp4',
+  'audio/ogg',
+  'audio/wav',
+  'audio/mpeg',
 ];
 
 export const MAX_UPLOAD_SIZE = 25 * 1024 * 1024; // 25MB

@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -9,21 +9,21 @@ export function formatTime(date: string | Date): string {
   const d = new Date(date);
   const hours = d.getHours();
   const minutes = d.getMinutes();
-  const ampm = hours >= 12 ? "pm" : "am";
+  const ampm = hours >= 12 ? 'pm' : 'am';
   const h12 = hours % 12 || 12;
-  return `${h12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
+  return `${h12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
 }
 
 export function formatDateSeparator(date: string | Date): string {
   const d = new Date(date);
-  return d.toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 export function formatDuration(ms: number): string {
   const seconds = Math.floor(ms / 1000);
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 export function formatCallDuration(ms: number): string {
@@ -32,16 +32,16 @@ export function formatCallDuration(ms: number): string {
   const mins = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
   if (hours > 0) {
-    return `${hours}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 export function getInitials(name: string): string {
   return name
-    .split(" ")
+    .split(' ')
     .map((n) => n[0])
-    .join("")
+    .join('')
     .toUpperCase()
     .slice(0, 2);
 }
@@ -61,19 +61,19 @@ export function generateWaveformFromAudio(audioBuffer: Float32Array, samples = 6
 }
 
 export function isMobile(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === 'undefined') return false;
   return window.innerWidth < 768;
 }
 
 export function isLowPowerDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
+  if (typeof navigator === 'undefined') return false;
   const nav = navigator as Navigator & { hardwareConcurrency?: number };
   return (nav.hardwareConcurrency ?? 4) <= 2;
 }
 
 export function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 export function sleep(ms: number): Promise<void> {
@@ -82,7 +82,7 @@ export function sleep(ms: number): Promise<void> {
 
 export function debounce<T extends (...args: unknown[]) => unknown>(
   fn: T,
-  ms: number
+  ms: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
@@ -93,14 +93,14 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 
 export function getAvatarColor(seed: string): string {
   const colors = [
-    "from-red-500 to-orange-500",
-    "from-amber-500 to-yellow-500",
-    "from-green-500 to-emerald-500",
-    "from-cyan-500 to-teal-500",
-    "from-blue-500 to-indigo-500",
-    "from-violet-500 to-purple-500",
-    "from-fuchsia-500 to-pink-500",
-    "from-rose-500 to-red-500",
+    'from-red-500 to-orange-500',
+    'from-amber-500 to-yellow-500',
+    'from-green-500 to-emerald-500',
+    'from-cyan-500 to-teal-500',
+    'from-blue-500 to-indigo-500',
+    'from-violet-500 to-purple-500',
+    'from-fuchsia-500 to-pink-500',
+    'from-rose-500 to-red-500',
   ];
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
@@ -118,7 +118,7 @@ export function getRelativeTime(date: string | Date): string {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return 'just now';
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;

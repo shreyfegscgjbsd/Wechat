@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, requireMessageAccess, handleAuthError } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser, requireMessageAccess, handleAuthError } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ messageId: string; emoji: string }> }
+  { params }: { params: Promise<{ messageId: string; emoji: string }> },
 ) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { messageId, emoji } = await params;

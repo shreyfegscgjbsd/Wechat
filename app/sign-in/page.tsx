@@ -1,4 +1,4 @@
-import { SignIn } from "@clerk/nextjs";
+import { SignIn } from '@clerk/nextjs';
 
 export default function Page() {
   return (
@@ -9,9 +9,7 @@ export default function Page() {
             P
           </div>
           <h1 className="text-2xl font-bold">Welcome back</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Sign in to your PulseChat account
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">Sign in to your PulseChat account</p>
         </div>
         <SignIn />
       </div>

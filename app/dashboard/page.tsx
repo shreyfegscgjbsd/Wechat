@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
-import { ConversationList } from "@/components/conversation-list";
-import { prisma } from "@/lib/prisma";
-import { getAuthUser } from "@/lib/server-auth";
-import type { Conversation } from "@/lib/types";
+import { redirect } from 'next/navigation';
+import { ConversationList } from '@/components/conversation-list';
+import { prisma } from '@/lib/prisma';
+import { getAuthUser } from '@/lib/server-auth';
+import type { Conversation } from '@/lib/types';
 
 function serializeDates<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
@@ -11,7 +11,7 @@ function serializeDates<T>(obj: T): T {
 export default async function DashboardPage() {
   const user = await getAuthUser();
   if (!user) {
-    redirect("/");
+    redirect('/');
   }
 
   const conversations = await prisma.conversation.findMany({
@@ -22,7 +22,7 @@ export default async function DashboardPage() {
       members: { include: { user: true } },
       lastMessage: { include: { sender: true } },
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: { updatedAt: 'desc' },
   });
 
   const serialized = serializeDates(conversations) as unknown as Conversation[];

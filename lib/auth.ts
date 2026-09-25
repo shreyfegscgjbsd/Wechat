@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
-import { clerkClient } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "./prisma";
+import { auth } from '@clerk/nextjs/server';
+import { clerkClient } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import { prisma } from './prisma';
 
 export async function getAuthenticatedUser() {
   const { userId } = await auth();
@@ -17,13 +17,13 @@ export async function getAuthenticatedUser() {
   const clerkUser = await client.users.getUser(userId);
   const username =
     clerkUser.username ??
-    clerkUser.emailAddresses[0]?.emailAddress.split("@")[0] ??
+    clerkUser.emailAddresses[0]?.emailAddress.split('@')[0] ??
     `user_${userId.slice(-8)}`;
   const displayName =
     clerkUser.fullName ??
     clerkUser.firstName ??
-    clerkUser.emailAddresses[0]?.emailAddress.split("@")[0] ??
-    "User";
+    clerkUser.emailAddresses[0]?.emailAddress.split('@')[0] ??
+    'User';
 
   try {
     return await prisma.userProfile.create({
@@ -36,12 +36,7 @@ export async function getAuthenticatedUser() {
       },
     });
   } catch (e: unknown) {
-    if (
-      e &&
-      typeof e === "object" &&
-      "code" in e &&
-      (e as { code: string }).code === "P2002"
-    ) {
+    if (e && typeof e === 'object' && 'code' in e && (e as { code: string }).code === 'P2002') {
       return prisma.userProfile.findUniqueOrThrow({
         where: { clerkUserId: userId },
       });
@@ -50,18 +45,23 @@ export async function getAuthenticatedUser() {
   }
 }
 
-export async function requireAuth(): Promise<NonNullable<Awaited<ReturnType<typeof getAuthenticatedUser>>>> {
+export async function requireAuth(): Promise<
+  NonNullable<Awaited<ReturnType<typeof getAuthenticatedUser>>>
+> {
   const user = await getAuthenticatedUser();
   if (!user) {
-    throw new AuthError("Unauthorized", 401);
+    throw new AuthError('Unauthorized', 401);
   }
   return user;
 }
 
 export class AuthError extends Error {
-  constructor(message: string, public status: number) {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
     super(message);
-    this.name = "AuthError";
+    this.name = 'AuthError';
   }
 }
 
@@ -69,32 +69,29 @@ export function handleAuthError(error: unknown): NextResponse {
   if (error instanceof AuthError) {
     return NextResponse.json({ error: error.message }, { status: error.status });
   }
-  console.error("Unexpected auth error:", error);
-  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  console.error('Unexpected auth error:', error);
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
 }
 
 export function checkConversationMembership(
   userId: string,
-  conversation: { members: Array<{ userId: string }> }
+  conversation: { members: Array<{ userId: string }> },
 ): boolean {
   return conversation.members.some((m) => m.userId === userId);
 }
 
-export async function requireConversationAccess(
-  conversationId: string,
-  userId: string
-) {
+export async function requireConversationAccess(conversationId: string, userId: string) {
   const conversation = await prisma.conversation.findUnique({
     where: { id: conversationId },
     include: { members: { include: { user: true } } },
   });
 
   if (!conversation) {
-    throw new AuthError("Conversation not found", 404);
+    throw new AuthError('Conversation not found', 404);
   }
 
   if (!checkConversationMembership(userId, conversation)) {
-    throw new AuthError("Access denied", 403);
+    throw new AuthError('Access denied', 403);
   }
 
   return conversation;
@@ -107,11 +104,11 @@ export async function requireMessageAccess(messageId: string, userId: string) {
   });
 
   if (!message) {
-    throw new AuthError("Message not found", 404);
+    throw new AuthError('Message not found', 404);
   }
 
   if (!checkConversationMembership(userId, message.conversation)) {
-    throw new AuthError("Access denied", 403);
+    throw new AuthError('Access denied', 403);
   }
 
   return message;
@@ -124,11 +121,11 @@ export async function requireCallAccess(callId: string, userId: string) {
   });
 
   if (!call) {
-    throw new AuthError("Call not found", 404);
+    throw new AuthError('Call not found', 404);
   }
 
   if (!checkConversationMembership(userId, call.conversation)) {
-    throw new AuthError("Access denied", 403);
+    throw new AuthError('Access denied', 403);
   }
 
   return call;

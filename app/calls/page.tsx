@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
-import { getAuthUser } from "@/lib/server-auth";
-import { prisma } from "@/lib/prisma";
-import { CallHistory } from "@/components/call-history";
-import type { CallSession } from "@/lib/types";
+import { redirect } from 'next/navigation';
+import { getAuthUser } from '@/lib/server-auth';
+import { prisma } from '@/lib/prisma';
+import { CallHistory } from '@/components/call-history';
+import type { CallSession } from '@/lib/types';
 
 function serializeDates<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
@@ -11,7 +11,7 @@ function serializeDates<T>(obj: T): T {
 export default async function CallsPage() {
   const user = await getAuthUser();
   if (!user) {
-    redirect("/");
+    redirect('/');
   }
 
   const calls = await prisma.callSession.findMany({
@@ -23,7 +23,7 @@ export default async function CallsPage() {
     include: {
       conversation: { include: { members: { include: { user: true } } } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: 50,
   });
 
@@ -37,4 +37,4 @@ export default async function CallsPage() {
   );
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';

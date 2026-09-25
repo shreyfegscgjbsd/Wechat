@@ -1,16 +1,12 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useEffect, useCallback, useRef } from "react";
-import { ChatHeader } from "./chat-header";
-import { MessageList } from "./message-list";
-import { MessageComposer } from "./message-composer";
-import { realtimeClient, REALTIME_EVENTS } from "@/lib/realtime";
-import type {
-  Conversation,
-  Message,
-  UserProfile,
-} from "@/lib/types";
+import * as React from 'react';
+import { useEffect, useRef } from 'react';
+import { ChatHeader } from './chat-header';
+import { MessageList } from './message-list';
+import { MessageComposer } from './message-composer';
+import { realtimeClient, REALTIME_EVENTS } from '@/lib/realtime';
+import type { Conversation, Message, UserProfile } from '@/lib/types';
 
 interface ChatViewProps {
   conversation: Conversation;
@@ -27,29 +23,16 @@ export function ChatView({
 }: ChatViewProps) {
   const [messages, setMessages] = React.useState<Message[]>(initialMessages);
   const messagesRef = useRef<Message[]>(initialMessages);
+  const prevConversationIdRef = useRef(conversation.id);
 
-  const refreshMessages = useCallback(
-    async (retryOn401 = true) => {
-      try {
-        const res = await fetch(
-          `/api/conversations/${conversation.id}/messages?limit=50`
-        );
-        if (res.status === 401) return;
-        if (!res.ok) return;
-        const data = await res.json();
-        setMessages(data.messages);
-        messagesRef.current = data.messages;
-      } catch {
-        // network error, ignore
-      }
-    },
-    [conversation.id]
-  );
-
+  // Reset messages when conversation changes (not on every render)
   useEffect(() => {
-    setMessages(initialMessages);
-    messagesRef.current = initialMessages;
-  }, [initialMessages]);
+    if (prevConversationIdRef.current !== conversation.id) {
+      prevConversationIdRef.current = conversation.id;
+      setMessages(initialMessages);
+      messagesRef.current = initialMessages;
+    }
+  }, [conversation.id, initialMessages]);
 
   // Subscribe to realtime events — replaces polling
   useEffect(() => {
@@ -67,19 +50,15 @@ export function ChatView({
     const onMessageUpdated = (event: { payload: unknown }) => {
       const msg = event.payload as Message;
       if (msg.conversationId !== conversation.id) return;
-      setMessages((prev) =>
-        prev.map((m) => (m.id === msg.id ? msg : m))
-      );
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
     };
 
     const onMessageDeleted = (event: { payload: unknown }) => {
       const payload = event.payload as { messageId: string };
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === payload.messageId
-            ? { ...m, deletedAt: new Date().toISOString() }
-            : m
-        )
+          m.id === payload.messageId ? { ...m, deletedAt: new Date().toISOString() } : m,
+        ),
       );
     };
 
@@ -89,13 +68,13 @@ export function ChatView({
 
     // Send subscribe event to the server
     realtimeClient.send({
-      type: "subscribe",
+      type: 'subscribe',
       payload: { conversationId: conversation.id },
     });
 
     return () => {
       realtimeClient.send({
-        type: "unsubscribe",
+        type: 'unsubscribe',
         payload: { conversationId: conversation.id },
       });
     };
@@ -103,16 +82,8 @@ export function ChatView({
 
   return (
     <div className="h-full flex flex-col">
-      <ChatHeader
-        conversation={conversation}
-        currentUser={currentUser}
-        otherUser={otherUser}
-      />
-      <MessageList
-        messages={messages}
-        currentUser={currentUser}
-        conversationId={conversation.id}
-      />
+      <ChatHeader conversation={conversation} currentUser={currentUser} otherUser={otherUser} />
+      <MessageList messages={messages} currentUser={currentUser} />
       <MessageComposer
         conversationId={conversation.id}
         currentUser={currentUser}

@@ -1,9 +1,9 @@
-import { redirect } from "next/navigation";
-import { getAuthUser } from "@/lib/server-auth";
-import { requireConversationAccess } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { ChatView } from "@/components/chat-view";
-import type { Conversation, Message, UserProfile } from "@/lib/types";
+import { redirect } from 'next/navigation';
+import { getAuthUser } from '@/lib/server-auth';
+import { requireConversationAccess } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { ChatView } from '@/components/chat-view';
+import type { Conversation, Message, UserProfile } from '@/lib/types';
 
 function serializeDates<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
@@ -16,7 +16,7 @@ export default async function ConversationPage({
 }) {
   const user = await getAuthUser();
   if (!user) {
-    redirect("/");
+    redirect('/');
   }
 
   const { conversationId } = await params;
@@ -25,12 +25,12 @@ export default async function ConversationPage({
   try {
     conversation = await requireConversationAccess(conversationId, user.id);
   } catch {
-    redirect("/dashboard");
+    redirect('/dashboard');
   }
 
   const messages = await prisma.message.findMany({
     where: { conversationId, deletedAt: null },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: 50,
     include: {
       sender: true,
@@ -51,9 +51,13 @@ export default async function ConversationPage({
       conversation={serializedConv}
       messages={serializedMessages}
       currentUser={serializedUser}
-      otherUser={serializeDates((otherMember as { user?: UserProfile } | undefined)?.user ?? null) as UserProfile | null}
+      otherUser={
+        serializeDates(
+          (otherMember as { user?: UserProfile } | undefined)?.user ?? null,
+        ) as UserProfile | null
+      }
     />
   );
 }
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';

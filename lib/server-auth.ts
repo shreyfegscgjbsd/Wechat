@@ -1,6 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
-import { clerkClient } from "@clerk/nextjs/server";
-import { prisma } from "./prisma";
+import { auth } from '@clerk/nextjs/server';
+import { clerkClient } from '@clerk/nextjs/server';
+import { prisma } from './prisma';
 
 export async function getAuthUser() {
   const { userId } = await auth();
@@ -16,13 +16,13 @@ export async function getAuthUser() {
   const clerkUser = await client.users.getUser(userId);
   const username =
     clerkUser.username ??
-    clerkUser.emailAddresses[0]?.emailAddress.split("@")[0] ??
+    clerkUser.emailAddresses[0]?.emailAddress.split('@')[0] ??
     `user_${userId.slice(-8)}`;
   const displayName =
     clerkUser.fullName ??
     clerkUser.firstName ??
-    clerkUser.emailAddresses[0]?.emailAddress.split("@")[0] ??
-    "User";
+    clerkUser.emailAddresses[0]?.emailAddress.split('@')[0] ??
+    'User';
 
   try {
     return await prisma.userProfile.create({
@@ -35,12 +35,7 @@ export async function getAuthUser() {
       },
     });
   } catch (e: unknown) {
-    if (
-      e &&
-      typeof e === "object" &&
-      "code" in e &&
-      (e as { code: string }).code === "P2002"
-    ) {
+    if (e && typeof e === 'object' && 'code' in e && (e as { code: string }).code === 'P2002') {
       return prisma.userProfile.findUniqueOrThrow({
         where: { clerkUserId: userId },
       });

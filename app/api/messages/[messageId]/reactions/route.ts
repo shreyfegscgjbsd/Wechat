@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, requireMessageAccess, handleAuthError } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { reactionSchema } from "@/lib/validation";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser, requireMessageAccess, handleAuthError } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { reactionSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ messageId: string }> }
+  { params }: { params: Promise<{ messageId: string }> },
 ) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { messageId } = await params;
@@ -38,8 +38,8 @@ export async function POST(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid request", details: error.issues },
-        { status: 400 }
+        { error: 'Invalid request', details: error.issues },
+        { status: 400 },
       );
     }
     return handleAuthError(error);

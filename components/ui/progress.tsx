@@ -1,5 +1,5 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: number;
@@ -8,14 +8,11 @@ export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Progress({ className, value = 0, ...props }: ProgressProps) {
   return (
     <div
-      className={cn(
-        "relative h-1 w-full overflow-hidden rounded-full bg-primary/20",
-        className
-      )}
+      className={cn('relative h-1 w-full overflow-hidden rounded-full bg-primary/20', className)}
       role="progressbar"
       aria-valuenow={value}
-      aria-valumin={0}
-      aria-valuMax={100}
+      aria-valuemin={0}
+      aria-valuemax={100}
       {...props}
     >
       <div

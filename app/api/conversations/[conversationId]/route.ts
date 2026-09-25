@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, requireConversationAccess, handleAuthError } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { markReadSchema } from "@/lib/validation";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser, requireConversationAccess, handleAuthError } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { markReadSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ conversationId: string }> }
+  { params }: { params: Promise<{ conversationId: string }> },
 ) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { conversationId } = await params;
@@ -19,12 +19,21 @@ export async function GET(
 
     return NextResponse.json({
       ...conversation,
-      members: conversation.members.map((m: { conversationId: string; userId: string; role: string; joinedAt: Date; lastReadMessageId: string | null; user?: { id: string } }) => ({
-        conversationId: m.conversationId,
-        userId: m.userId,
-        role: m.role,
-        lastReadMessageId: m.lastReadMessageId,
-      })),
+      members: conversation.members.map(
+        (m: {
+          conversationId: string;
+          userId: string;
+          role: string;
+          joinedAt: Date;
+          lastReadMessageId: string | null;
+          user?: { id: string };
+        }) => ({
+          conversationId: m.conversationId,
+          userId: m.userId,
+          role: m.role,
+          lastReadMessageId: m.lastReadMessageId,
+        }),
+      ),
     });
   } catch (error) {
     return handleAuthError(error);
@@ -33,12 +42,12 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ conversationId: string }> }
+  { params }: { params: Promise<{ conversationId: string }> },
 ) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { conversationId } = await params;
@@ -61,8 +70,8 @@ export async function PATCH(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid request", details: error.issues },
-        { status: 400 }
+        { error: 'Invalid request', details: error.issues },
+        { status: 400 },
       );
     }
     return handleAuthError(error);

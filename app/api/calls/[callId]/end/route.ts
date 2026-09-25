@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, requireCallAccess, handleAuthError } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser, requireCallAccess, handleAuthError } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ callId: string }> }
+  { params }: { params: Promise<{ callId: string }> },
 ) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { callId } = await params;
@@ -21,7 +21,7 @@ export async function POST(
     const updated = await prisma.callSession.update({
       where: { id: callId },
       data: {
-        status: "ENDED",
+        status: 'ENDED',
         endedAt: now,
       },
     });

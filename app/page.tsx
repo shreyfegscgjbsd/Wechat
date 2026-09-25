@@ -1,8 +1,8 @@
-import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
-import Link from "next/link";
-import { CustomUserMenu } from "@/components/custom-user-menu";
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/nextjs';
+import Link from 'next/link';
+import { CustomUserMenu } from '@/components/custom-user-menu';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
   return (
@@ -39,14 +39,14 @@ export default function Home() {
         <section className="container mx-auto px-4 py-20 text-center">
           <div className="max-w-3xl mx-auto space-y-6">
             <h1 className="text-5xl font-bold tracking-tight">
-              Chat that feels{" "}
+              Chat that feels{' '}
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 alive
               </span>
             </h1>
             <p className="text-xl text-muted-foreground">
-              PulseChat is a private, real-time messaging app for friends.
-              Text, voice, and audio/video calls — fast, secure, and beautiful.
+              PulseChat is a private, real-time messaging app for friends. Text, voice, and
+              audio/video calls — fast, secure, and beautiful.
             </p>
             <div className="flex items-center justify-center gap-4 pt-4">
               <SignedOut>
@@ -104,24 +104,54 @@ export default function Home() {
 
 function MessageIcon() {
   return (
-    <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    <svg
+      className="h-6 w-6 text-primary"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      />
     </svg>
   );
 }
 
 function MicIcon() {
   return (
-    <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-7-4h14M12 3a5 5 0 015 5v3a5 5 0 01-10 0V8a5 5 0 015-5z" />
+    <svg
+      className="h-6 w-6 text-primary"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-7-4h14M12 3a5 5 0 015 5v3a5 5 0 01-10 0V8a5 5 0 015-5z"
+      />
     </svg>
   );
 }
 
 function CallIcon() {
   return (
-    <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v1.364a2 2 0 01-1.698 1.98 12.005 12.005 0 007.09 11.098 1 1 0 01.598 1.33l-.001.001a1 1 0 01-1.33.598 12.005 12.005 0 01-11.098-7.09 1 1 0 011.98-1.698l1.364-1.364a1 1 0 011 0l4.553 2.276a1 1 0 010 1.802l-4.553 2.276a1 1 0 01-1.802 0l-4.553-2.276a1 1 0 010-1.802z" />
+    <svg
+      className="h-6 w-6 text-primary"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15 10l4.553-2.276A1 1 0 0121 8.618v1.364a2 2 0 01-1.698 1.98 12.005 12.005 0 007.09 11.098 1 1 0 01.598 1.33l-.001.001a1 1 0 01-1.33.598 12.005 12.005 0 01-11.098-7.09 1 1 0 011.98-1.698l1.364-1.364a1 1 0 011 0l4.553 2.276a1 1 0 010 1.802l-4.553 2.276a1 1 0 01-1.802 0l-4.553-2.276a1 1 0 010-1.802z"
+      />
     </svg>
   );
 }

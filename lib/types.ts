@@ -1,8 +1,8 @@
-export type MessageStatus = "sending" | "sent" | "delivered" | "read" | "failed";
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 
-export type CallStatus = "RINGING" | "CONNECTING" | "ACTIVE" | "ENDED" | "FAILED" | "MISSED";
+export type CallStatus = 'RINGING' | 'CONNECTING' | 'ACTIVE' | 'ENDED' | 'FAILED' | 'MISSED';
 
-export type PresenceStatus = "online" | "offline" | "idle";
+export type PresenceStatus = 'online' | 'offline' | 'idle';
 
 export type DateTime = string | Date;
 
@@ -20,7 +20,7 @@ export interface UserProfile {
 
 export interface Conversation {
   id: string;
-  type: "DIRECT" | "GROUP";
+  type: 'DIRECT' | 'GROUP';
   createdAt: DateTime;
   updatedAt: DateTime;
   lastMessage: Message | null;
@@ -30,7 +30,7 @@ export interface Conversation {
 export interface ConversationMember {
   conversationId: string;
   userId: string;
-  role: "MEMBER" | "ADMIN";
+  role: 'MEMBER' | 'ADMIN';
   lastReadMessageId: string | null;
   user: UserProfile;
 }
@@ -39,7 +39,7 @@ export interface Message {
   id: string;
   conversationId: string;
   senderId: string;
-  type: "TEXT" | "VOICE" | "SYSTEM" | "CALL_EVENT";
+  type: 'TEXT' | 'VOICE' | 'SYSTEM' | 'CALL_EVENT';
   body: string | null;
   replyToMessageId: string | null;
   editedAt: DateTime | null;
@@ -56,6 +56,7 @@ export interface VoiceMessage {
   messageId: string;
   mediaAssetId: string;
   waveformJson: number[] | null;
+  mediaAsset?: { durationMs?: number | null };
 }
 
 export interface MessageReaction {
@@ -71,7 +72,7 @@ export interface CallSession {
   id: string;
   conversationId: string;
   initiatedById: string;
-  type: "AUDIO" | "VIDEO";
+  type: 'AUDIO' | 'VIDEO';
   status: CallStatus;
   startedAt: DateTime | null;
   endedAt: DateTime | null;
@@ -134,11 +135,11 @@ export interface MarkReadRequest {
 
 export interface StartCallRequest {
   conversationId: string;
-  type: "AUDIO" | "VIDEO";
+  type: 'AUDIO' | 'VIDEO';
 }
 
 export interface SignalingMessage {
-  type: "offer" | "answer" | "ice_candidate" | "call_end";
+  type: 'offer' | 'answer' | 'ice_candidate' | 'call_end';
   callId: string;
   fromUserId: string;
   toUserId: string;
@@ -148,7 +149,7 @@ export interface SignalingMessage {
 
 export interface CallSignalPayload {
   callId: string;
-  type: "offer" | "answer" | "ice_candidate" | "call_end";
+  type: 'offer' | 'answer' | 'ice_candidate' | 'call_end';
   fromUserId: string;
   sdp?: RTCSessionDescriptionInit;
   candidate?: RTCIceCandidateInit;

@@ -1,19 +1,18 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
-import { useEffect } from "react";
-import { CustomUserMenu } from "./custom-user-menu";
-import { UserSearch } from "./user-search";
-import { cn } from "@/lib/utils";
-import { Avatar } from "./ui/avatar";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
-import { Search, MessageSquare, Settings, LogOut, Users, Phone, Video } from "lucide-react";
-import { realtimeClient, REALTIME_EVENTS } from "@/lib/realtime";
-import type { UserProfile as UserProfileType } from "@/lib/types";
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
+import { useEffect } from 'react';
+import { CustomUserMenu } from './custom-user-menu';
+import { UserSearch } from './user-search';
+import { cn } from '@/lib/utils';
+import { Avatar } from './ui/avatar';
+import { Button } from './ui/button';
+import { MessageSquare, Settings, Phone } from 'lucide-react';
+import { realtimeClient } from '@/lib/realtime';
+import type { UserProfile as UserProfileType } from '@/lib/types';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -26,9 +25,9 @@ export function AppShell({ children, user }: AppShellProps) {
 
   // Connect to WebSocket when signed in
   useEffect(() => {
-    if (!isSignedIn || !user?.id || typeof window === "undefined") return;
+    if (!isSignedIn || !user?.id || typeof window === 'undefined') return;
 
-    const url = process.env.NEXT_PUBLIC_REALTIME_URL || "ws://localhost:3001";
+    const url = process.env.NEXT_PUBLIC_REALTIME_URL || 'ws://localhost:3001';
     realtimeClient.connect(url, user.id);
 
     return () => {
@@ -37,9 +36,9 @@ export function AppShell({ children, user }: AppShellProps) {
   }, [isSignedIn, user?.id]);
 
   const navItems = [
-    { href: "/dashboard", label: "Chats", icon: MessageSquare },
-    { href: "/calls", label: "Calls", icon: Phone },
-    { href: "/settings", label: "Settings", icon: Settings },
+    { href: '/dashboard', label: 'Chats', icon: MessageSquare },
+    { href: '/calls', label: 'Calls', icon: Phone },
+    { href: '/settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -75,10 +74,10 @@ export function AppShell({ children, user }: AppShellProps) {
             return (
               <Link key={item.href} href={item.href}>
                 <Button
-                  variant={isActive ? "secondary" : "ghost"}
+                  variant={isActive ? 'secondary' : 'ghost'}
                   className={cn(
-                    "w-full justify-start gap-3",
-                    isActive && "bg-secondary text-secondary-foreground"
+                    'w-full justify-start gap-3',
+                    isActive && 'bg-secondary text-secondary-foreground',
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -94,9 +93,7 @@ export function AppShell({ children, user }: AppShellProps) {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {children}
-      </main>
+      <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
     </div>
   );
 }

@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, handleAuthError } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { createDirectConversationSchema } from "@/lib/validation";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser, handleAuthError } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { createDirectConversationSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 export async function GET() {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const conversations = await prisma.conversation.findMany({
@@ -19,7 +19,7 @@ export async function GET() {
         members: { include: { user: true } },
         lastMessage: { include: { sender: true } },
       },
-      orderBy: { updatedAt: "desc" },
+      orderBy: { updatedAt: 'desc' },
     });
 
     return NextResponse.json(conversations);
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -43,19 +43,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (!target) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     if (target.id === user.id) {
       return NextResponse.json(
-        { error: "Cannot create conversation with yourself" },
-        { status: 400 }
+        { error: 'Cannot create conversation with yourself' },
+        { status: 400 },
       );
     }
 
     const existing = await prisma.conversation.findFirst({
       where: {
-        type: "DIRECT",
+        type: 'DIRECT',
         members: {
           every: {
             userId: { in: [user.id, target.id] },
@@ -71,12 +71,12 @@ export async function POST(request: NextRequest) {
 
     const conversation = await prisma.conversation.create({
       data: {
-        type: "DIRECT",
+        type: 'DIRECT',
         members: {
           createMany: {
             data: [
-              { userId: user.id, role: "MEMBER" },
-              { userId: target.id, role: "MEMBER" },
+              { userId: user.id, role: 'MEMBER' },
+              { userId: target.id, role: 'MEMBER' },
             ],
           },
         },
@@ -90,8 +90,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid request", details: error.issues },
-        { status: 400 }
+        { error: 'Invalid request', details: error.issues },
+        { status: 400 },
       );
     }
     return handleAuthError(error);

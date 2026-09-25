@@ -27,7 +27,7 @@ class RealtimeClient {
       try {
         const data = JSON.parse(event.data);
         const callbacks = this.callbacks.get(data.type) || [];
-        const allCallbacks = this.callbacks.get("*") || [];
+        const allCallbacks = this.callbacks.get('*') || [];
         callbacks.forEach((cb) => cb(data));
         allCallbacks.forEach((cb) => cb(data));
       } catch {
@@ -60,7 +60,7 @@ class RealtimeClient {
     if (!this.callbacks.has(eventType)) {
       this.callbacks.set(eventType, new Set());
     }
-    this.callbacks.get(eventType)!.add(callback);
+    this.callbacks.get(eventType)?.add(callback);
 
     return () => {
       this.callbacks.get(eventType)?.delete(callback);
@@ -89,16 +89,16 @@ export function useRealtime() {
 }
 
 export const REALTIME_EVENTS = {
-  MESSAGE_CREATED: "conversation:message_created",
-  MESSAGE_UPDATED: "conversation:message_updated",
-  MESSAGE_DELETED: "conversation:message_deleted",
-  TYPING_STARTED: "conversation:typing_started",
-  TYPING_STOPPED: "conversation:typing_stopped",
-  PRESENCE_UPDATED: "presence:updated",
-  MESSAGE_READ: "message:read",
-  CALL_INCOMING: "call:incoming",
-  CALL_ACCEPTED: "call:accepted",
-  CALL_REJECTED: "call:rejected",
-  CALL_ENDED: "call:ended",
-  CALL_SIGNALING: "call:signaling",
+  MESSAGE_CREATED: 'conversation:message_created',
+  MESSAGE_UPDATED: 'conversation:message_updated',
+  MESSAGE_DELETED: 'conversation:message_deleted',
+  TYPING_STARTED: 'conversation:typing_started',
+  TYPING_STOPPED: 'conversation:typing_stopped',
+  PRESENCE_UPDATED: 'presence:updated',
+  MESSAGE_READ: 'message:read',
+  CALL_INCOMING: 'call:incoming',
+  CALL_ACCEPTED: 'call:accepted',
+  CALL_REJECTED: 'call:rejected',
+  CALL_ENDED: 'call:ended',
+  CALL_SIGNALING: 'call:signaling',
 } as const;

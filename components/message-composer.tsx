@@ -1,26 +1,14 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useState, useRef, useCallback } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { TooltipComponent } from "./ui/tooltip";
-import { toast } from "sonner";
-import {
-  Send,
-  Mic,
-  Smile,
-  Image,
-  X,
-  Reply,
-  Loader2,
-} from "lucide-react";
-import type {
-    Message,
-    UserProfile,
-    UploadUrlResponse,
-    CompleteUploadRequest,
-  } from "@/lib/types";
+/* eslint-disable react-hooks/purity */
+import * as React from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { TooltipComponent } from './ui/tooltip';
+import { toast } from 'sonner';
+import { Send, Mic, Smile, Image, X, Reply, Loader2 } from 'lucide-react';
+import type { Message, UserProfile, UploadUrlResponse, CompleteUploadRequest } from '@/lib/types';
 
 interface MessageComposerProps {
   conversationId: string;
@@ -33,7 +21,7 @@ export function MessageComposer({
   currentUser,
   onMessageSent,
 }: MessageComposerProps) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [sending, setSending] = useState(false);
@@ -45,6 +33,7 @@ export function MessageComposer({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const pendingVoiceBlobRef = useRef<Blob | null>(null);
+  const recordingStartRef = useRef(0);
 
   const handleSend = useCallback(async () => {
     const trimmed = text.trim();
@@ -52,14 +41,14 @@ export function MessageComposer({
 
     setSending(true);
     const bodyText = trimmed;
-    setText("");
+    setText('');
 
     // Optimistic: show message immediately
     const optimisticMsg: Message = {
-      id: "optimistic-" + Date.now(),
+      id: 'optimistic-' + Date.now(),
       conversationId,
       senderId: currentUser.id,
-      type: "TEXT",
+      type: 'TEXT',
       body: bodyText,
       replyToMessageId: replyingTo?.id ?? null,
       editedAt: null,
@@ -75,39 +64,37 @@ export function MessageComposer({
     onMessageSent?.(optimisticMsg);
 
     try {
-      const res = await fetch(
-        `/api/conversations/${conversationId}/messages`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            conversationId,
-            body: bodyText,
-            replyToMessageId: replyingTo?.id,
-          }),
-        }
-      );
+      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId,
+          body: bodyText,
+          replyToMessageId: replyingTo?.id,
+        }),
+      });
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error((err as { error?: string }).error || "Failed to send message");
+        throw new Error((err as { error?: string }).error || 'Failed to send message');
       }
 
       const newMsg = await res.json();
       onMessageSent?.(newMsg);
       setReplyingTo(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send message");
+      toast.error(err instanceof Error ? err.message : 'Failed to send message');
       setText(bodyText); // restore on error
     } finally {
       setSending(false);
     }
   }, [text, conversationId, replyingTo, sending, currentUser, onMessageSent]);
 
+  // Note: handleStartRecording is an event handler, not render-time code.
   const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       chunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
@@ -115,7 +102,7 @@ export function MessageComposer({
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
         stream.getTracks().forEach((t) => t.stop());
         pendingVoiceBlobRef.current = blob;
       };
@@ -124,22 +111,23 @@ export function MessageComposer({
       recorder.start();
       setIsRecording(true);
 
-      const start = Date.now();
+      recordingStartRef.current = Date.now();
       const interval = setInterval(() => {
-        setRecordingDuration(Date.now() - start);
-        if (Date.now() - start > 5 * 60 * 1000) {
+        const elapsed = Date.now() - recordingStartRef.current;
+        setRecordingDuration(elapsed);
+        if (elapsed > 5 * 60 * 1000) {
           clearInterval(interval);
           handleStopRecording();
         }
       }, 1000);
     } catch {
-      toast.error("Microphone access denied");
+      toast.error('Microphone access denied');
     }
   };
 
   const handleStopRecording = async () => {
     const recorder = mediaRecorderRef.current;
-    if (recorder && recorder.state !== "inactive") {
+    if (recorder && recorder.state !== 'inactive') {
       recorder.stop();
     }
     setIsRecording(false);
@@ -154,56 +142,55 @@ export function MessageComposer({
     try {
       setSending(true);
       // Get upload URL
-      const uploadRes = await fetch("/api/media/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const uploadRes = await fetch('/api/media/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           filename: `voice-${Date.now()}.webm`,
-          contentType: "audio/webm",
+          contentType: 'audio/webm',
           size: blob.size,
         }),
       });
-      if (!uploadRes.ok) throw new Error("Failed to get upload URL");
-      const { uploadUrl, mediaId, storageKey, headers } =
-        (await uploadRes.json()) as UploadUrlResponse;
+      if (!uploadRes.ok) throw new Error('Failed to get upload URL');
+      const { uploadUrl, mediaId, headers } = (await uploadRes.json()) as UploadUrlResponse;
 
       // Upload to S3
       await fetch(uploadUrl, {
-        method: "PUT",
+        method: 'PUT',
         body: blob,
-        headers: headers ?? { "Content-Type": "audio/webm" },
+        headers: headers ?? { 'Content-Type': 'audio/webm' },
       });
 
       // Complete upload (extract duration + waveform)
-      const completeRes = await fetch("/api/media/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mediaId, durationMs: blob.size > 0 ? Math.round(blob.size / 16000) * 1000 : 0 } as CompleteUploadRequest),
+      const completeRes = await fetch('/api/media/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mediaId,
+          durationMs: blob.size > 0 ? Math.round(blob.size / 16000) * 1000 : 0,
+        } as CompleteUploadRequest),
       });
-      if (!completeRes.ok) throw new Error("Failed to complete upload");
+      if (!completeRes.ok) throw new Error('Failed to complete upload');
 
       // Send voice message
-      const msgRes = await fetch(
-        `/api/conversations/${conversationId}/messages`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            conversationId,
-            body: null,
-            type: "VOICE",
-            mediaId,
-          }),
-        }
-      );
+      const msgRes = await fetch(`/api/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId,
+          body: null,
+          type: 'VOICE',
+          mediaId,
+        }),
+      });
       if (!msgRes.ok) {
         const err = await msgRes.json().catch(() => ({}));
-        throw new Error((err as { error?: string }).error || "Failed to send voice message");
+        throw new Error((err as { error?: string }).error || 'Failed to send voice message');
       }
       const newMsg = await msgRes.json();
       onMessageSent?.(newMsg);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send voice message");
+      toast.error(err instanceof Error ? err.message : 'Failed to send voice message');
     } finally {
       setSending(false);
     }
@@ -215,15 +202,10 @@ export function MessageComposer({
         <div className="flex items-center gap-2 mb-2 px-2 text-sm">
           <Reply className="h-4 w-4 text-muted-foreground" />
           <span className="text-muted-foreground">
-            Replying to{" "}
-            <span className="font-medium">
-              {replyingTo.sender.displayName}
-            </span>
+            Replying to <span className="font-medium">{replyingTo.sender.displayName}</span>
           </span>
           {replyingTo.body && (
-            <span className="text-muted-foreground truncate">
-              {replyingTo.body}
-            </span>
+            <span className="text-muted-foreground truncate">{replyingTo.body}</span>
           )}
           <Button
             variant="ghost"
@@ -252,12 +234,7 @@ export function MessageComposer({
           >
             Cancel
           </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="ml-auto"
-            onClick={handleStopRecording}
-          >
+          <Button variant="default" size="sm" className="ml-auto" onClick={handleStopRecording}>
             Send
           </Button>
         </div>
@@ -265,7 +242,8 @@ export function MessageComposer({
         <div className="flex items-end gap-2">
           <TooltipComponent content="Attach" side="top">
             <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
-              <Image className="h-4 w-4" />
+{/* eslint-disable-next-line jsx-a11y/alt-text */}
+              <Image className="h-4 w-4" aria-hidden="true" />
             </Button>
           </TooltipComponent>
 
@@ -274,7 +252,7 @@ export function MessageComposer({
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSend();
                 }
@@ -310,11 +288,7 @@ export function MessageComposer({
             onClick={handleSend}
             disabled={!text.trim() || sending}
           >
-            {sending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
+            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
       )}

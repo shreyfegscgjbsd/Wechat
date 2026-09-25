@@ -1,43 +1,30 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Button } from "./ui/button";
-import { Avatar } from "./ui/avatar";
-import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
-import { TooltipComponent } from "./ui/tooltip";
-import {
-  Phone,
-  Video,
-  Search,
-  MoreVertical,
-  Users,
-} from "lucide-react";
-import type { Conversation, UserProfile } from "@/lib/types";
-
-interface ChatHeaderProps {
-  conversation: Conversation;
-  currentUser: UserProfile;
-  otherUser: UserProfile | null;
-}
+import * as React from 'react';
+import { Button } from './ui/button';
+import { Avatar } from './ui/avatar';
+import { Separator } from './ui/separator';
+import { TooltipComponent } from './ui/tooltip';
+import { Phone, Video, Search, MoreVertical } from 'lucide-react';
+import type { Conversation, UserProfile } from '@/lib/types';
 
 export function ChatHeader({
-  conversation,
-  currentUser,
   otherUser,
-}: ChatHeaderProps) {
+}: {
+  conversation?: Conversation;
+  currentUser?: UserProfile;
+  otherUser: UserProfile | null;
+}) {
   return (
     <header className="h-16 border-b border-border flex items-center px-4 gap-3 bg-card/50 backdrop-blur">
       <Avatar
         src={otherUser?.avatarUrl ?? null}
-        alt={otherUser?.displayName ?? "Unknown"}
+        alt={otherUser?.displayName ?? 'Unknown'}
         size="md"
         status="online"
       />
       <div className="flex-1 min-w-0">
-        <h2 className="font-semibold text-sm truncate">
-          {otherUser?.displayName ?? "Unknown"}
-        </h2>
+        <h2 className="font-semibold text-sm truncate">{otherUser?.displayName ?? 'Unknown'}</h2>
         <p className="text-xs text-muted-foreground">
           <span className="inline-block h-2 w-2 rounded-full bg-green-500 mr-1" />
           Online

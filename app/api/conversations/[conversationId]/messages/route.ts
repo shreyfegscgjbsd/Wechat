@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAuthenticatedUser, requireConversationAccess, handleAuthError } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { sendMessageSchema } from "@/lib/validation";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser, requireConversationAccess, handleAuthError } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { sendMessageSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 const cursorSchema = z.object({
   cursor: z.string().nullish(),
@@ -11,26 +11,26 @@ const cursorSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ conversationId: string }> }
+  { params }: { params: Promise<{ conversationId: string }> },
 ) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { conversationId } = await params;
     const { searchParams } = new URL(request.url);
     const { cursor, limit } = cursorSchema.parse({
-      cursor: searchParams.get("cursor"),
-      limit: searchParams.get("limit") ?? "50",
+      cursor: searchParams.get('cursor'),
+      limit: searchParams.get('limit') ?? '50',
     });
 
     await requireConversationAccess(conversationId, user.id);
 
     const messages = await prisma.message.findMany({
       where: { conversationId, deletedAt: null },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take: limit + 1,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       include: {
@@ -44,7 +44,7 @@ export async function GET(
 
     // Aggregate reaction counts per emoji
     const reactionCounts = await prisma.messageReaction.groupBy({
-      by: ["messageId", "emoji"],
+      by: ['messageId', 'emoji'],
       _count: { _all: true },
       where: { messageId: { in: messages.map((m) => m.id) } },
     });
@@ -73,8 +73,8 @@ export async function GET(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid request", details: error.issues },
-        { status: 400 }
+        { error: 'Invalid request', details: error.issues },
+        { status: 400 },
       );
     }
     return handleAuthError(error);
@@ -83,12 +83,12 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ conversationId: string }> }
+  { params }: { params: Promise<{ conversationId: string }> },
 ) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { conversationId } = await params;
@@ -98,16 +98,16 @@ export async function POST(
     const { body: messageBody, replyToMessageId, type, mediaId } = sendMessageSchema.parse(body);
 
     // Validate: TEXT messages must have a body, VOICE messages must have a mediaId
-    if (type === "TEXT" && (!messageBody || messageBody.trim().length === 0)) {
+    if (type === 'TEXT' && (!messageBody || messageBody.trim().length === 0)) {
       return NextResponse.json(
-        { error: "Message body is required for text messages" },
-        { status: 400 }
+        { error: 'Message body is required for text messages' },
+        { status: 400 },
       );
     }
-    if (type === "VOICE" && !mediaId) {
+    if (type === 'VOICE' && !mediaId) {
       return NextResponse.json(
-        { error: "mediaId is required for voice messages" },
-        { status: 400 }
+        { error: 'mediaId is required for voice messages' },
+        { status: 400 },
       );
     }
 
@@ -118,8 +118,8 @@ export async function POST(
       });
       if (!replyTo || replyTo.conversationId !== conversationId) {
         return NextResponse.json(
-          { error: "Reply target not found in this conversation" },
-          { status: 400 }
+          { error: 'Reply target not found in this conversation' },
+          { status: 400 },
         );
       }
     }
@@ -129,11 +129,9 @@ export async function POST(
         conversationId,
         senderId: user.id,
         type,
-        body: type === "TEXT" ? (messageBody ?? null) : null,
+        body: type === 'TEXT' ? (messageBody ?? null) : null,
         replyToMessageId: replyToMessageId ?? null,
-        ...(type === "VOICE" && mediaId
-          ? { voice: { create: { mediaAssetId: mediaId } } }
-          : {}),
+        ...(type === 'VOICE' && mediaId ? { voice: { create: { mediaAssetId: mediaId } } } : {}),
       },
       include: {
         sender: { select: { id: true, username: true, displayName: true, avatarUrl: true } },
@@ -149,13 +147,13 @@ export async function POST(
         createdAt: message.createdAt.toISOString(),
         updatedAt: message.updatedAt.toISOString(),
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid request", details: error.issues },
-        { status: 400 }
+        { error: 'Invalid request', details: error.issues },
+        { status: 400 },
       );
     }
     return handleAuthError(error);

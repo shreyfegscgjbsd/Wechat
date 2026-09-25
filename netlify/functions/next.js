@@ -1,11 +1,11 @@
 // Netlify function handler for Next.js API routes
 // All /api/* requests are proxied to this function
 
-const { createServer } = require("http");
-const { parse } = require("url");
-const next = require("next");
+const { createServer } = require('http');
+const { parse } = require('url');
+const next = require('next');
 
-const isDev = process.env.NODE_ENV !== "production";
+const isDev = process.env.NODE_ENV !== 'production';
 const app = next({ dev: isDev });
 const handle = app.getRequestHandler();
 
@@ -32,18 +32,22 @@ exports.handler = async (event, context) => {
     raw: {
       write: () => true,
       end: () => true,
-      setHeader: (k, v) => { res.headers[k] = v; },
+      setHeader: (k, v) => {
+        res.headers[k] = v;
+      },
       getHeader: (k) => res.headers[k],
       removeHeader: () => {},
       flushHeaders: () => true,
     },
-    setHeader: (k, v) => { res.headers[k] = v; },
+    setHeader: (k, v) => {
+      res.headers[k] = v;
+    },
     getHeader: (k) => res.headers[k],
     removeHeader: () => {},
     cookie: () => {},
     json: (data) => {
       res.statusCode = 200;
-      res.headers["content-type"] = "application/json";
+      res.headers['content-type'] = 'application/json';
       res.body = JSON.stringify(data);
     },
     send: (data) => {
@@ -52,7 +56,7 @@ exports.handler = async (event, context) => {
     },
     redirect: (status, url) => {
       res.statusCode = parseInt(status);
-      res.headers["location"] = url;
+      res.headers['location'] = url;
     },
   };
 
@@ -67,9 +71,9 @@ exports.handler = async (event, context) => {
 
 function parseCookies(cookieHeader) {
   if (!cookieHeader) return {};
-  return cookieHeader.split(";").reduce((cookies, cookie) => {
-    const [name, ...rest] = cookie.trim().split("=");
-    cookies[name] = rest.join("=");
+  return cookieHeader.split(';').reduce((cookies, cookie) => {
+    const [name, ...rest] = cookie.trim().split('=');
+    cookies[name] = rest.join('=');
     return cookies;
   }, {});
 }

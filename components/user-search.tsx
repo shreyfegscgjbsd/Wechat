@@ -1,14 +1,13 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Avatar } from "./ui/avatar";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { toast } from "sonner";
-import { Search, UserPlus, X, Loader2, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Avatar } from './ui/avatar';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { toast } from 'sonner';
+import { Search, UserPlus, X, Loader2, AlertCircle } from 'lucide-react';
 
 interface SearchResult {
   id: string;
@@ -18,7 +17,7 @@ interface SearchResult {
 }
 
 export function UserSearch() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -37,12 +36,12 @@ export function UserSearch() {
     try {
       const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`);
       if (!res.ok) {
-        throw new Error("Search failed");
+        throw new Error('Search failed');
       }
       const data = await res.json();
       setResults(data.users ?? []);
     } catch {
-      setError("Search failed. Please try again.");
+      setError('Search failed. Please try again.');
       setResults([]);
     } finally {
       setLoading(false);
@@ -60,27 +59,27 @@ export function UserSearch() {
     setStartingChat(target.id);
     setError(null);
     try {
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: target.username }),
       });
 
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const msg = (data as { error?: string }).error || "Failed to start chat";
+        const msg = (data as { error?: string }).error || 'Failed to start chat';
         setError(msg);
         toast.error(msg);
         return;
       }
 
-      setQuery("");
+      setQuery('');
       setResults([]);
       setOpen(false);
       router.push(`/dashboard/${data.id}`);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to start chat";
+      const msg = err instanceof Error ? err.message : 'Failed to start chat';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -101,7 +100,11 @@ export function UserSearch() {
         />
         {query && (
           <button
-            onClick={() => { setQuery(""); setResults([]); setError(null); }}
+            onClick={() => {
+              setQuery('');
+              setResults([]);
+              setError(null);
+            }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />
@@ -163,7 +166,12 @@ export function UserSearch() {
       {open && (
         <div
           className="fixed inset-0 z-40"
-          onClick={() => { setOpen(false); setResults([]); setQuery(""); setError(null); }}
+          onClick={() => {
+            setOpen(false);
+            setResults([]);
+            setQuery('');
+            setError(null);
+          }}
         />
       )}
     </div>
