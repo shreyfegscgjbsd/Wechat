@@ -5,14 +5,33 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
+const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
 export const metadata: Metadata = {
   title: 'PulseChat — Real-Time Chat',
   description: 'A private, real-time messaging app for friends.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // If Clerk keys are not configured, render without ClerkProvider
+  // This prevents build failures when env vars are not set
+  if (!clerkPublishableKey) {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body className="font-sans antialiased">
+          <ThemeProvider>
+            <TooltipProvider>
+              {children}
+              <Toaster position="bottom-right" richColors />
+            </TooltipProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    );
+  }
+
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={clerkPublishableKey}>
       <html lang="en" suppressHydrationWarning>
         <body className="font-sans antialiased">
           <ThemeProvider>
