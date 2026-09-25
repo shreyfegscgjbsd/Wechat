@@ -6,6 +6,10 @@ import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+const isValidKey =
+  clerkPublishableKey &&
+  !clerkPublishableKey.startsWith('replace_with_') &&
+  clerkPublishableKey.startsWith('pk_');
 
 export const metadata: Metadata = {
   title: 'PulseChat — Real-Time Chat',
@@ -13,9 +17,9 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // If Clerk keys are not configured, render without ClerkProvider
-  // This prevents build failures when env vars are not set
-  if (!clerkPublishableKey) {
+  // If Clerk keys are not configured or invalid, render without ClerkProvider
+  // This prevents build failures when env vars are not set or are placeholders
+  if (!isValidKey) {
     return (
       <html lang="en" suppressHydrationWarning>
         <body className="font-sans antialiased">
