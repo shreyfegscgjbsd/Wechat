@@ -1,6 +1,41 @@
-import { SignUp } from '@clerk/nextjs';
+'use client';
+
+import { useAuth, SignUp } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Page() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push('/dashboard');
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-6">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl mx-auto mb-3">
+              P
+            </div>
+            <h1 className="text-2xl font-bold">Create your account</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Start chatting with friends in seconds
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isSignedIn) {
+    return null; // Will redirect via useEffect
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -13,7 +48,7 @@ export default function Page() {
             Start chatting with friends in seconds
           </p>
         </div>
-        <SignUp />
+        <SignUp routing="path" path="/sign-up" />
       </div>
     </div>
   );

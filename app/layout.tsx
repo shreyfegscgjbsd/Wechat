@@ -35,7 +35,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkProvider
+      publishableKey={clerkPublishableKey}
+      afterSignInUrl="/dashboard"
+      afterSignUpUrl="/dashboard"
+    >
       <html lang="en" suppressHydrationWarning>
         <body className="font-sans antialiased">
           <ThemeProvider>
