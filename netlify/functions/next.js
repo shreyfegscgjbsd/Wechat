@@ -19,7 +19,15 @@ exports.handler = async (event, context) => {
     headers,
     url: event.path,
     query: parsedUrl.query,
-    body: body ? JSON.parse(body) : null,
+    body: body
+      ? (() => {
+          try {
+            return JSON.parse(body);
+          } catch {
+            return null;
+          }
+        })()
+      : null,
     cookies: parseCookies(event.headers.cookie),
     rawBody: body,
     ...event,

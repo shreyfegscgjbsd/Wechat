@@ -3,6 +3,7 @@ import { getAuthenticatedUser, requireConversationAccess, handleAuthError } from
 import { prisma } from '@/lib/prisma';
 import { sendMessageSchema } from '@/lib/validation';
 import { z } from 'zod';
+import { rateLimit } from '@/lib/ratelimit';
 
 const cursorSchema = z.object({
   cursor: z.string().nullish(),
@@ -89,6 +90,15 @@ export async function POST(
     const user = await getAuthenticatedUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limit messages: 20 per minute per user
+    const { allowed } = rateLimit(`msg:${user.id}`, 20, 60_000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: 'Too many messages. Please slow down.' },
+        { status: 429, headers: { 'Retry-After': '60' } },
+      );
     }
 
     const { conversationId } = await params;
