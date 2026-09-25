@@ -1,10 +1,21 @@
 'use client';
 
-import { SignedIn, SignedOut, SignInButton, SignUpButton } from '@clerk/nextjs';
-import Link from 'next/link';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, useAuth } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 import { CustomUserMenu } from '@/components/custom-user-menu';
 
 export function ClerkHomeContent() {
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
+
+  const handleDashboardClick = () => {
+    if (isSignedIn) {
+      router.push('/dashboard');
+    } else {
+      router.push('/sign-in');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-border">
@@ -57,12 +68,12 @@ export function ClerkHomeContent() {
                 </SignUpButton>
               </SignedOut>
               <SignedIn>
-                <Link
-                  href="/dashboard"
+                <button
+                  onClick={handleDashboardClick}
                   className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground px-6 py-2.5 text-sm font-medium hover:bg-primary/90 transition-colors"
                 >
                   Go to Dashboard
-                </Link>
+                </button>
               </SignedIn>
             </div>
           </div>
