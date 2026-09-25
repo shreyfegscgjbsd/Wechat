@@ -16,3 +16,6 @@
 # Optional (for voice messages & calls):
 #   STORAGE_ENDPOINT, STORAGE_BUCKET, STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY
 #   TURN_SERVER_URL, TURN_USERNAME, TURN_CREDENTIAL
+#
+# To skip secrets scanning for local dev files, add this env var in the Netlify UI:
+#   SECRETS_SCAN_OMIT_PATHS = ".env,.env.example"
