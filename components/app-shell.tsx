@@ -27,7 +27,15 @@ export function AppShell({ children, user }: AppShellProps) {
   useEffect(() => {
     if (!isSignedIn || !user?.id || typeof window === 'undefined') return;
 
-    const url = process.env.NEXT_PUBLIC_REALTIME_URL || 'ws://localhost:3001';
+    // Use environment variable for WebSocket URL, with explicit check
+    const url = process.env.NEXT_PUBLIC_REALTIME_URL;
+    
+    // Only connect if a valid WebSocket URL is configured
+    if (!url || url.startsWith('ws://localhost') || url.startsWith('wss://localhost')) {
+      console.warn('[Realtime] No valid NEXT_PUBLIC_REALTIME_URL configured. Real-time features disabled.');
+      return;
+    }
+
     realtimeClient.connect(url, user.id);
 
     return () => {
