@@ -1,0 +1,4 @@
+{
+  "build": { "builder": "NIXPACKS" },
+  "deploy": { "startCommand": "npx tsx lib/realtime-server.ts" }
+}

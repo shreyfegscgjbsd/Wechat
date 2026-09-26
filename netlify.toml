@@ -17,7 +17,13 @@
 #   STORAGE_ENDPOINT, STORAGE_BUCKET, STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY
 #   TURN_SERVER_URL, TURN_USERNAME, TURN_CREDENTIAL
 #
-# Optional (for real-time features):
+# Realtime (using Pusher - managed service, no WebSocket server needed):
+#   NEXT_PUBLIC_PUSHER_KEY       (Pusher Dashboard → App Keys → Key)
+#   PUSHER_APP_ID                (Pusher Dashboard → App Keys → App ID)
+#   PUSHER_SECRET                (Pusher Dashboard → App Keys → Secret)
+#   NEXT_PUBLIC_PUSHER_CLUSTER   (Pusher Dashboard → App Keys → Cluster, default: mt1)
+#
+# Legacy WebSocket (deprecated, use Pusher instead):
 #   NEXT_PUBLIC_REALTIME_URL  (wss://your-websocket-server.example.com - requires separate WebSocket server deployment)
 #
 # To skip secrets scanning for local dev files, add this env var in the Netlify UI:

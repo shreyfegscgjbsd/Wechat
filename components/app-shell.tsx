@@ -23,20 +23,19 @@ export function AppShell({ children, user }: AppShellProps) {
   const pathname = usePathname();
   const { isSignedIn } = useUser();
 
-  // Connect to WebSocket when signed in
+  // Connect to Pusher when signed in
   useEffect(() => {
     if (!isSignedIn || !user?.id || typeof window === 'undefined') return;
 
-    // Use environment variable for WebSocket URL, with explicit check
-    const url = process.env.NEXT_PUBLIC_REALTIME_URL;
+    // Only connect if a valid Pusher key is configured
+    const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
     
-    // Only connect if a valid WebSocket URL is configured
-    if (!url || url.startsWith('ws://localhost') || url.startsWith('wss://localhost')) {
-      console.warn('[Realtime] No valid NEXT_PUBLIC_REALTIME_URL configured. Real-time features disabled.');
+    if (!key || key.startsWith('replace_with_')) {
+      console.warn('[Realtime] No valid NEXT_PUBLIC_PUSHER_KEY configured. Real-time features disabled.');
       return;
     }
 
-    realtimeClient.connect(url, user.id);
+    realtimeClient.connect(user.id);
 
     return () => {
       realtimeClient.disconnect();

@@ -1,26 +1,15 @@
+import Pusher from 'pusher';
+
 type RealtimeCallback = (event: { type: string; payload: unknown }) => void;
 type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'failed';
 
 class RealtimeClient {
-  private ws: WebSocket | null = null;
+  private pusher: Pusher | null = null;
   private callbacks: Map<string, Set<RealtimeCallback>> = new Map();
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 10;
-  private reconnectDelay = 1000;
-  private url: string | null = null;
-  private userId: string | null = null;
-  private isConnecting = false;
   private connectionState: ConnectionState = 'disconnected';
   private stateListeners: Set<(state: ConnectionState) => void> = new Set();
-  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private hasIntentionalDisconnect = false;
-
-  constructor() {
-    this.handleOpen = this.handleOpen.bind(this);
-    this.handleClose = this.handleClose.bind(this);
-    this.handleError = this.handleError.bind(this);
-    this.handleMessage = this.handleMessage.bind(this);
-  }
+  private channelName: string | null = null;
+  private userId: string | null = null;
 
   private setState(state: ConnectionState): void {
     if (this.connectionState !== state) {
@@ -47,98 +36,77 @@ class RealtimeClient {
     return this.connectionState;
   }
 
-  private handleOpen(): void {
-    this.reconnectAttempts = 0;
-    this.isConnecting = false;
-    this.hasIntentionalDisconnect = false;
-    this.setState('connected');
-  }
-
-  private handleClose(): void {
-    this.isConnecting = false;
-    this.ws = null;
-    
-    if (this.hasIntentionalDisconnect) {
-      this.setState('disconnected');
-      return;
-    }
-    
-    this.setState('disconnected');
-    
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.scheduleReconnect();
-    } else {
-      this.setState('failed');
-      console.warn('[Realtime] Max reconnect attempts reached. Real-time features unavailable.');
-    }
-  }
-
-  private handleError(): void {
-    // Error will trigger onclose
-  }
-
-  private handleMessage(event: MessageEvent): void {
-    try {
-      const data = JSON.parse(event.data);
-      const callbacks = this.callbacks.get(data.type) || [];
-      const allCallbacks = this.callbacks.get('*') || [];
-      callbacks.forEach((cb) => cb(data));
-      allCallbacks.forEach((cb) => cb(data));
-    } catch (e) {
-      // Ignore parse errors
-    }
-  }
-
-  connect(url: string, userId: string): void {
+  connect(userId: string): void {
     if (this.connectionState === 'connected' || this.connectionState === 'connecting') {
       return;
     }
 
-    if (!url || (!url.startsWith('ws://') && !url.startsWith('wss://'))) {
-      console.error('[Realtime] Invalid WebSocket URL:', url);
+    // Check for Pusher credentials
+    const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
+    const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'mt1';
+
+    if (!key) {
+      console.warn('[Realtime] No Pusher key configured. Real-time features disabled.');
       this.setState('failed');
       return;
     }
 
-    this.url = url;
     this.userId = userId;
-    this.isConnecting = true;
-    this.hasIntentionalDisconnect = false;
+    this.channelName = `private-user-${userId}`;
     this.setState('connecting');
 
-    const fullUrl = `${url}?userId=${encodeURIComponent(userId)}`;
-    
     try {
-      this.ws = new WebSocket(fullUrl);
-      this.ws.onopen = this.handleOpen;
-      this.ws.onclose = this.handleClose;
-      this.ws.onerror = this.handleError;
-      this.ws.onmessage = this.handleMessage;
-    } catch (error) {
-      console.error('[Realtime] Failed to create WebSocket:', error);
-      this.setState('failed');
-    }
-  }
+      this.pusher = new Pusher(key, {
+        cluster,
+        authEndpoint: '/api/pusher/auth',
+        auth: {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      });
 
-  private scheduleReconnect(): void {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.setState('failed');
-      console.warn('[Realtime] Max reconnect attempts reached. Real-time features unavailable.');
-      return;
-    }
-    
-    if (this.hasIntentionalDisconnect) return;
-    
-    this.reconnectAttempts++;
-    const delay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts), 30000);
-    
-    this.reconnectTimeoutId = setTimeout(() => {
-      if (this.hasIntentionalDisconnect) return;
-      if (!this.url || !this.userId) return;
-      if (this.connectionState === 'connected' || this.connectionState === 'connecting') return;
+      this.pusher.connection.bind('connected', () => {
+        this.setState('connected');
+        console.log('[Realtime] Pusher connected');
+      });
+
+      this.pusher.connection.bind('disconnected', () => {
+        this.setState('disconnected');
+      });
+
+      this.pusher.connection.bind('error', (err: any) => {
+        console.error('[Realtime] Pusher connection error:', err);
+        this.setState('failed');
+      });
+
+      // Subscribe to user's private channel
+      const channel = this.pusher.subscribe(this.channelName);
       
-      this.connect(this.url, this.userId);
-    }, delay);
+      channel.bind('pusher:subscription_succeeded', () => {
+        this.setState('connected');
+        console.log('[Realtime] Subscribed to user channel:', this.channelName);
+      });
+
+      channel.bind('pusher:subscription_error', (err: any) => {
+        console.error('[Realtime] Subscription error:', err);
+        this.setState('failed');
+      });
+
+      // Bind to realtime events
+      Object.values(REALTIME_EVENTS).forEach((eventName) => {
+        channel.bind(eventName, (data: any) => {
+          const callbacks = this.callbacks.get(eventName) || [];
+          const allCallbacks = this.callbacks.get('*') || [];
+          callbacks.forEach((cb) => cb(data));
+          this.callbacks.get('*')?.forEach((cb) => cb(data));
+        });
+      });
+
+    } catch (error) {
+      console.error('[Realtime] Failed to initialize Pusher:', error);
+      this.setState('failed');
+    }
   }
 
   subscribe(eventType: string, callback: RealtimeCallback): () => void {
@@ -153,27 +121,24 @@ class RealtimeClient {
   }
 
   send(event: { type: string; payload: unknown }): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(event));
-    }
+    // For Pusher, we send via API endpoint
+    fetch('/api/pusher/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(event),
+    }).catch(console.error);
   }
 
   disconnect(): void {
-    this.hasIntentionalDisconnect = true;
-    
-    if (this.reconnectTimeoutId) {
-      clearTimeout(this.reconnectTimeoutId);
-      this.reconnectTimeoutId = null;
+    if (this.pusher) {
+      if (this.channelName) {
+        this.pusher.unsubscribe(this.channelName);
+        this.channelName = null;
+      }
+      this.pusher.disconnect();
+      this.pusher = null;
     }
-    
-    if (this.ws) {
-      this.ws.onclose = null;
-      this.ws.close();
-      this.ws = null;
-    }
-    
     this.setState('disconnected');
-    this.reconnectAttempts = 0;
   }
 
   isConnected(): boolean {
