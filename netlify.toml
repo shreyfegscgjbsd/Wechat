@@ -5,6 +5,10 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Build environment variables
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,NEXT_PUBLIC_PUSHER_KEY"
+
 # Environment variables MUST be set in the Netlify UI:
 #   Site settings → Environment variables → Add new
 #
@@ -25,7 +29,3 @@
 #
 # Legacy WebSocket (deprecated, use Pusher instead):
 #   NEXT_PUBLIC_REALTIME_URL  (wss://your-websocket-server.example.com - requires separate WebSocket server deployment)
-#
-# To skip secrets scanning for local dev files and publishable keys, add this env var in the Netlify UI:
-#   SECRETS_SCAN_OMIT_PATHS = ".env,.env.example"
-#   SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,NEXT_PUBLIC_PUSHER_KEY"
